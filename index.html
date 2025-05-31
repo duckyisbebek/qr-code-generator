@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Generator Barcode (QR Code)</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 500px;
+    margin: 30px auto;
+    text-align: center;
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    font-weight: bold;
+    text-align: left;
+  }
+  input, select {
+    width: 100%;
+    padding: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+  }
+  button {
+    margin-top: 20px;
+    padding: 12px 25px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    border-radius: 5px;
+  }
+  button:hover {
+    background-color: #3498db;
+  }
+  #qrcode {
+    margin-top: 30px;
+  }
+  #printLabelBtn {
+    display: none;
+    margin-top: 10px;
+  }
+  @media print {
+    body * {
+      visibility: hidden;
+    }
+    #printableArea, #printableArea * {
+      visibility: visible;
+    }
+    #printableArea {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      text-align: center;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h2>Generator Barcode (QR Code) dengan Format Lengkap + Cetak Label</h2>
+
+<label for="sku">SKU (Barcode):</label>
+<input type="text" id="sku" placeholder="Misal: BK00123" />
+
+<label for="batch">Batch:</label>
+<input type="text" id="batch" placeholder="Misal: B20240501A" />
+
+<label for="expiry">Tanggal Kadaluarsa:</label>
+<input type="date" id="expiry" />
+
+<label for="location">Lokasi:</label>
+<input type="text" id="location" placeholder="Misal: Rak A1" />
+
+<label for="status">Status:</label>
+<select id="status">
+  <option value="Lulus">Lulus</option>
+  <option value="Karantina">Karantina</option>
+  <option value="Ditolak">Ditolak</option>
+</select>
+
+<button onclick="generateBarcode()">Buat Barcode</button>
+<button id="printLabelBtn" onclick="printLabel()">Cetak Label</button>
+
+<div id="qrcode"></div>
+
+<!-- Area yang akan dicetak -->
+<div id="printableArea" style="display:none; margin-top: 30px;">
+  <div id="printQrCode"></div>
+  <p id="printDataText" style="font-weight:bold; font-size:16px; margin-top:10px;"></p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+<script>
+  let qrCodeInstance;
+  let currentDataString = '';
+
+  function generateBarcode(){
+    const sku = document.getElementById('sku').value.trim();
+    const batch = document.getElementById('batch').value.trim();
+    const expiry = document.getElementById('expiry').value;
+    const location = document.getElementById('location').value.trim();
+    const status = document.getElementById('status').value;
+
+    if(!sku || !batch || !expiry || !location || !status){
+      alert('Semua field harus diisi!');
+      return;
+    }
+
+    currentDataString = `${sku}|${batch}|${expiry}|${location}|${status}`;
+
+    // Clear qrcode sebelumnya
+    const qrDiv = document.getElementById('qrcode');
+    qrDiv.innerHTML = '';
+
+    qrCodeInstance = new QRCode(qrDiv, {
+      text: currentDataString,
+      width: 250,
+      height: 250,
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.H
+    });
+
+    // Tampilkan tombol cetak
+    document.getElementById('printLabelBtn').style.display = 'inline-block';
+  }
+
+  function printLabel(){
+    // Siapkan area cetak
+    const printArea = document.getElementById('printableArea');
+    const printQrDiv = document.getElementById('printQrCode');
+    const printText = document.getElementById('printDataText');
+
+    // Clear dulu area print QR Code
+    printQrDiv.innerHTML = '';
+
+    // Generate QR code di area print
+    new QRCode(printQrDiv, {
+      text: currentDataString,
+      width: 250,
+      height: 250,
+      colorDark : "#000000",
+      colorLight : "#ffffff",
+      correctLevel : QRCode.CorrectLevel.H
+    });
+
+    // Tampilkan data teks di bawah QR Code
+    printText.textContent = currentDataString;
+
+    // Tampilkan area print
+    printArea.style.display = 'block';
+
+    // Jalankan print browser
+    window.print();
+
+    // Setelah print, sembunyikan area print lagi
+    printArea.style.display = 'none';
+  }
+</script>
+
+</body>
+</html>
